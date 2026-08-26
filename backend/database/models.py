@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, DateTime, Integer
+from sqlalchemy import Column, String, Text, DateTime, Integer, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 import uuid
@@ -22,6 +22,24 @@ class NewsArticle(Base):
     
     def __repr__(self):
         return f"<NewsArticle {self.title[:50]}...>"
+
+
+class SavedArticle(Base):
+    __tablename__ = "saved_articles"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    source = Column(String, nullable=False)
+    description = Column(Text)
+    category = Column(String, nullable=False)
+    user_note = Column(Text)  # Notatka użytkownika
+    tags = Column(String)  # Tagi oddzielone przecinkami: #EURO7,#REGULACJE
+    saved_at = Column(DateTime, default=datetime.utcnow)
+    ai_generated_note = Column(Text)  # Notatka wygenerowana przez AI
+    
+    def __repr__(self):
+        return f"<SavedArticle {self.title[:50]}...>"
 
 
 class ChatSession(Base):
