@@ -4,9 +4,10 @@ import { chatAPI } from '../api'
 
 interface ChatProps {
   sessionId: string
+  articleContext?: string
 }
 
-export const Chat: React.FC<ChatProps> = ({ sessionId }) => {
+export const Chat: React.FC<ChatProps> = ({ sessionId, articleContext = '' }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,7 +30,11 @@ export const Chat: React.FC<ChatProps> = ({ sessionId }) => {
     setLoading(true)
 
     try {
-      const response = await chatAPI.sendMessage(userMessage, sessionId)
+      const response = await chatAPI.sendMessage(
+        userMessage,
+        sessionId,
+        articleContext
+      )
       setMessages(prev => [...prev, { role: 'assistant', content: response.response }])
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Błąd podczas wysyłania wiadomości'
@@ -52,11 +57,23 @@ export const Chat: React.FC<ChatProps> = ({ sessionId }) => {
   return (
     <div className="card">
       <div className="section-title">💬 Chat z agentem AI</div>
+      {articleContext && (
+        <div style={{
+          background: '#1e90ff',
+          padding: '10px',
+          borderRadius: '6px',
+          marginBottom: '15px',
+          fontSize: '12px',
+          opacity: 0.8
+        }}>
+          📌 Kontekst artykułu: {articleContext.substring(0, 100)}...
+        </div>
+      )}
       <div className="chat-container">
         <div className="messages">
           {messages.length === 0 ? (
             <div className="empty-state">
-              <p>👋 Cześć! Jestem SPARK, Twój asystent ds. branży MHCV.</p>
+              <p>👋 Cześć! Jestem MOBGLO, Twój asystent ds. branży MHCV.</p>
               <p>Możesz zadać mi pytania o pobrane artykuły lub branżę.</p>
             </div>
           ) : (

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Header } from './components/Header'
 import { NewsSection } from './components/NewsSection'
 import { Chat } from './components/Chat'
-import { NewsResponse } from './types'
-import { newsAPI } from './api'
+import { Library } from './components/Library'
+import { Stats } from './components/Stats'
+import { ArticleCard } from './components/ArticleCard'
+import { NewsResponse, NewsArticle } from './types'
+import { newsAPI, chatAPI, libraryAPI } from './api'
 import { getStoredSessionId } from './utils'
 import './App.css'
 
@@ -12,7 +15,9 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionId] = useState(() => getStoredSessionId())
-  const [activeTab, setActiveTab] = useState<'news' | 'chat'>('news')
+  const [activeTab, setActiveTab] = useState<'news' | 'chat' | 'library' | 'stats'>('news')
+  const [chatArticleContext, setChatArticleContext] = useState<string>('')
+  const [savingArticle, setSavingArticle] = useState<string | null>(null)
 
   const handleFetchNews = async () => {
     setLoading(true)
@@ -27,6 +32,37 @@ function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSaveArticle = async (article: NewsArticle) => {
+    try {
+      setSavingArticle(article.url)
+      await libraryAPI.save({
+        title: article.title,
+        url: article.url,
+        source: article.source,
+        description: article.description,
+        category: article.category,
+        user_note: '',
+        tags: ''
+      })
+      alert('✅ Artykuł zapisany do biblioteki!')
+    } catch (err) {
+      console.error('Error saving:', err)
+      alert('❌ Błąd podczas zapisywania')
+    } finally {
+      setSavingArticle(null)
+    }
+  }
+
+  const handleAskChat = (article: NewsArticle) => {
+    setChatArticleContext(`Artykuł: ${article.title}\nŹródło: ${article.source}\nTreść: ${article.description}`)
+    setActiveTab('chat')
+  }
+
+  const handleAskChatFromLibrary = (article: any, context: string) => {
+    setChatArticleContext(`Artykuł: ${article.title}\nMoja notatka: ${context}`)
+    setActiveTab('chat')
   }
 
   useEffect(() => {
@@ -54,9 +90,24 @@ function App() {
           </button>
           <button
             className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => setActiveTab('chat')}
+            onClick={() => {
+              setChatArticleContext('')
+              setActiveTab('chat')
+            }}
           >
             💬 Chat
+          </button>
+          <button
+            className={`tab ${activeTab === 'library' ? 'active' : ''}`}
+            onClick={() => setActiveTab('library')}
+          >
+            📚 Biblioteka
+          </button>
+          <button
+            className={`tab ${activeTab === 'stats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            📊 Statystyki
           </button>
         </div>
       )}
@@ -74,22 +125,35 @@ function App() {
                 title="Europa - MHCV"
                 icon="🇪🇺"
                 articles={news.data.europe_mhcv}
+                onSave={handleSaveArticle}
+                onAskChat={handleAskChat}
+                savingArticleUrl={savingArticle}
               />
               <NewsSection
                 title="Europa - Pozostała branża"
                 icon="🌍"
                 articles={news.data.europe_other}
+                onSave={handleSaveArticle}
+                onAskChat={handleAskChat}
+                savingArticleUrl={savingArticle}
               />
               <NewsSection
                 title="Świat - Globalne newsy"
                 icon="🌐"
                 articles={news.data.global}
+                onSave={handleSaveArticle}
+                onAskChat={handleAskChat}
+                savingArticleUrl={savingArticle}
               />
             </>
           )}
         </>
+      ) : activeTab === 'chat' ? (
+        <Chat sessionId={sessionId} articleContext={chatArticleContext} />
+      ) : activeTab === 'library' ? (
+        <Library onAskChat={handleAskChatFromLibrary} />
       ) : (
-        <Chat sessionId={sessionId} />
+        <Stats />
       )}
     </div>
   )
