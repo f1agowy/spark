@@ -25,7 +25,11 @@ app = FastAPI(title="MOBGLO - MHCV News Agent", version="1.0.0")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://mobglo.onrender.com",
+        os.getenv("FRONTEND_URL", "http://localhost:3000")
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,7 +88,7 @@ async def health():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
-@app.post("/api/news/fetch")
+@app.post("/news/fetch")
 async def fetch_news(request: NewsRequest):
     """
     Fetch and analyze news from all sources
@@ -111,7 +115,7 @@ async def fetch_news(request: NewsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/chat")
+@app.post("/chat")
 async def chat(request: ChatMessage):
     """
     Chat endpoint - ask questions about fetched news or general topics
@@ -139,7 +143,7 @@ async def chat(request: ChatMessage):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/library/save")
+@app.post("/library/save")
 async def save_article(request: SaveArticleRequest):
     """
     Save article to library (roczna biblioteka)
@@ -169,7 +173,7 @@ async def save_article(request: SaveArticleRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/library/all")
+@app.get("/library/all")
 async def get_all_articles(month: Optional[int] = None, tag: Optional[str] = None):
     """
     Get all saved articles (biblioteka roczna) with optional filters
@@ -190,7 +194,7 @@ async def get_all_articles(month: Optional[int] = None, tag: Optional[str] = Non
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.put("/api/library/{article_id}")
+@app.put("/library/{article_id}")
 async def update_article(article_id: str, request: UpdateArticleRequest):
     """
     Update article note or tags
@@ -217,7 +221,7 @@ async def update_article(article_id: str, request: UpdateArticleRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.delete("/api/library/{article_id}")
+@app.delete("/library/{article_id}")
 async def delete_article(article_id: str):
     """
     Delete article from library
@@ -238,7 +242,7 @@ async def delete_article(article_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/library/{article_id}/enhance-note")
+@app.post("/library/{article_id}/enhance-note")
 async def enhance_note(article_id: str, request: AIEnhanceNoteRequest):
     """
     Ask AI to enhance/expand the note for an article
@@ -264,7 +268,7 @@ async def enhance_note(article_id: str, request: AIEnhanceNoteRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/stats")
+@app.get("/stats")
 async def get_statistics():
     """
     Get yearly statistics
@@ -284,7 +288,7 @@ async def get_statistics():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/library/export/excel")
+@app.get("/library/export/excel")
 async def export_excel():
     """
     Export all articles to Excel
