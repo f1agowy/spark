@@ -31,5 +31,5 @@ WORKDIR /app
 # Expose port
 EXPOSE 8000
 
-# Run backend
-CMD ["python", "backend/main.py"]
+# Run backend with frontend serving
+CMD ["python", "-u", "backend/main.py"]
