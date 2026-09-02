@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { NewsResponse, ChatResponse } from './types'
 
-const API_URL = 'https://mobglo.onrender.com/api'
+const API_URL = 'https://mobglo.onrender.com'
 
 const api = axios.create({
   baseURL: API_URL,
