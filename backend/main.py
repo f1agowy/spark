@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from datetime import datetime
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 import logging
 import asyncio
@@ -308,6 +311,34 @@ async def export_excel():
     except Exception as e:
         logger.error(f"❌ Export error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Serve static files from frontend/dist
+dist_dir = Path(__file__).parent.parent / "frontend" / "dist"
+if dist_dir.exists():
+    app.mount("/assets", StaticFiles(directory=dist_dir / "assets"), name="assets")
+    logger.info(f"✅ Mounted static files from {dist_dir}")
+else:
+    logger.warning(f"⚠️ Frontend dist directory not found: {dist_dir}")
+
+
+# Serve index.html for all other routes (SPA routing)
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Serve frontend files or index.html for SPA routing"""
+    file_path = dist_dir / full_path
+    
+    # If file exists, serve it
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    
+    # Otherwise serve index.html for client-side routing
+    index_path = dist_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    
+    # Fallback
+    return {"detail": "Not Found"}
 
 
 if __name__ == "__main__":
