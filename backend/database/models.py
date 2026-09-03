@@ -6,6 +6,27 @@ import uuid
 Base = declarative_base()
 
 
+class NewsCache(Base):
+    """Cache articles with deduplication - expires after 7 days"""
+    __tablename__ = "news_cache"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    tier = Column(String, nullable=False)  # "tier1", "tier2", "tier3"
+    title = Column(String, nullable=False)
+    url = Column(String, nullable=False, unique=True)
+    source = Column(String, nullable=False)
+    description = Column(Text)
+    ai_summary = Column(Text)  # 3-4 sentence summary
+    is_oem = Column(Boolean, default=False)  # OEM komunikaty
+    is_duplicate = Column(Boolean, default=False)  # Powtórka z poprzednich dni
+    published_at = Column(DateTime, nullable=False)
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)  # now + 7 days
+    
+    def __repr__(self):
+        return f"<NewsCache {self.tier} {self.title[:50]}...>"
+
+
 class NewsArticle(Base):
     __tablename__ = "articles"
     
